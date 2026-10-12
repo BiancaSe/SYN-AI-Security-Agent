@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-** SÝN (named after the Norse goddess of defense and boundary keeper) is a Python-based, locally hosted AI-powered security agent I am developing as part of my [Laconia Cybersecurity Lab](https://github.com).
+**SÝN** (named after the Norse goddess of defense and boundary keeping) is a Python-based, locally hosted AI-powered security agent I am developing as part of my [Laconia Cybersecurity Lab](https://github.com/BiancaSe/Laconia-Cybersecurity-Lab).
 
 The project explores how a locally hosted large language model (LLM) can interact with enterprise infrastructure through controlled, purpose-built tools.
 
