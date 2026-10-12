@@ -1,14 +1,15 @@
+
 # SÝN — AI Security Agent
 
 ## Project Overview
 
-**SÝN** (named after the Norse goddess of defense and boundary keeping) is a Python-based, locally hosted AI-powered security agent I am developing as part of my [Laconia Cybersecurity Lab](https://github.com/BiancaSe/Laconia-Cybersecurity-Lab).
+**SÝN** (named after the Norse goddess associated with defense and boundary keeping) is a Python-based, locally hosted AI security agent I am developing as part of my [Laconia Cybersecurity Lab](https://github.com/BiancaSe/Laconia-Cybersecurity-Lab).
 
-The project explores how a locally hosted large language model (LLM) can interact with enterprise infrastructure through controlled, purpose-built tools.
+The project explores how a locally hosted large language model (LLM) can interact with enterprise infrastructure through purpose-built Python tools.
 
-SÝN translates natural-language requests into Active Directory queries and administrative operations, combining AI-assisted interaction with Python automation and LDAP.
+SÝN translates natural-language requests into Active Directory queries and administrative operations, combining AI-assisted interaction, Python automation, and LDAP.
 
-The goal is to progressively develop SÝN into a security operations assistant capable of supporting identity administration, infrastructure monitoring, security investigations, and incident response within a controlled lab environment.
+The long-term goal is to develop SÝN into a security operations assistant supporting identity administration, infrastructure monitoring, security investigations, and incident response within a controlled lab environment.
 
 ## Technologies
 
@@ -17,8 +18,9 @@ The goal is to progressively develop SÝN into a security operations assistant c
 | Programming language | Python |
 | Local AI runtime | Ollama |
 | Language model | Qwen3 4B |
-| Web interface | Flask |
-| Directory communication | LDAP |
+| Web interface | Flask, HTML, CSS |
+| Directory communication | LDAP / ldap3 |
+| Credential storage | Python keyring |
 | Directory service | Microsoft Active Directory |
 | Domain controller | Windows Server 2019 |
 | Virtualization | VMware Workstation |
@@ -26,170 +28,179 @@ The goal is to progressively develop SÝN into a security operations assistant c
 
 ## Architecture
 
-SÝN operates locally and communicates with the Laconia Active Directory environment through a dedicated LDAP service account.
+SÝN operates locally and connects to the Laconia Active Directory environment using a dedicated LDAP service account.
 
-The application uses modular Python components to interpret requests, select tools, execute directory operations, and present the results.
+The application separates AI interaction, tool definitions, execution logic, and Active Directory operations into modular Python components.
 
 **Request workflow:**
 
-1. A user submits a natural-language request.
-2. The locally hosted AI model interprets the request.
-3. The Python application selects an appropriate tool.
-4. The tool communicates with Active Directory using LDAP.
-5. SÝN processes the returned information and responds to the user.
+1. A user submits a natural-language request through the web interface or agent.
+2. Ollama runs the locally hosted Qwen3 model to interpret the request.
+3. The Python dispatcher executes the selected tool.
+4. The tool communicates with Active Directory through LDAP.
+5. SÝN returns the result to the user.
 
 **Architecture diagram:**
 
 ```text
-           USER
-             |
-             v
-      Flask Web Interface
-             |
-             v
-       Python AI Agent
-             |
-             v
-       Ollama / Qwen3
-             |
-             v
-     Python Tool Dispatcher
-             |
-             v
-      LDAP Integration
-             |
-             v
-     Active Directory
-      laconia.local
+        USER
+          |
+          v
+   Flask Web Interface
+          |
+          v
+     Python AI Agent
+          |
+          v
+    Ollama / Qwen3
+          |
+          v
+   Python Tool Dispatcher
+          |
+          v
+    LDAP Integration
+          |
+          v
+    Active Directory
+     laconia.local
 ```
+
+The Flask dashboard also performs separate connectivity checks against core domain services.
 
 ## Implemented Capabilities
 
-SÝN currently supports 11 Active Directory capabilities.
+### Active Directory — 12 Capabilities
 
-### Active Directory Queries
+**Directory queries and account information**
 
-- List Active Directory users
-- List domain computers
-- Look up a user's group memberships
-- List members of an Active Directory group
-- Retrieve user account details
-- Check whether user accounts are enabled or disabled
-- Check password expiration status
-- Retrieve when a password was last changed
-- Retrieve last logon information
-- Check account lockout status
+1. List Active Directory users
+2. List domain computers
+3. Retrieve a user's group memberships
+4. List members of an Active Directory group
+5. Retrieve user account details
+6. Check whether accounts are enabled or disabled
+7. Check password expiration status
+8. Retrieve password last-changed information
+9. Retrieve last logon information
+10. Check account lockout status
 
-### Active Directory Administration
+**Administrative operations**
 
-- Unlock locked user accounts
+11. Unlock user accounts
+12. Enable or disable user accounts — implemented in code; successful execution pending permissions verification
 
-### AI and Interface
+Administrative actions depend on the permissions delegated to SÝN's service account.
 
-- Natural-language interaction with a locally hosted AI model
+### Web Dashboard and Infrastructure Checks
+
+SÝN includes a custom Flask dashboard providing an interactive AI chat interface and basic domain-service connectivity checks.
+
+| Service | Dashboard Check |
+|---|---|
+| Domain Controller | ICMP ping |
+| DNS | Domain name resolution using `nslookup` |
+| LDAP | TCP connectivity on port 389 |
+| Kerberos | TCP connectivity on port 88 |
+| SMB | TCP connectivity on port 445 |
+
+The dashboard displays the results as service-status indicators. These checks verify basic connectivity and availability, not continuous security monitoring or threat detection.
+
+### AI Integration
+
+- Natural-language interaction using a locally hosted Qwen3 model
 - Python-based tool selection and execution
-- Flask web interface
-- LDAP communication with the Laconia Active Directory domain
+- Flask web interface connected to the AI agent
+- LDAP-based Active Directory integration
+- Local conversation memory
 
 ## Security and Access Control
 
-SÝN uses a dedicated Active Directory service account rather than relying on a domain administrator account for routine directory access.
+SÝN uses a dedicated Active Directory service account rather than a domain administrator account for routine directory access.
 
-Selected permissions are delegated within the lab environment to support controlled administrative operations.
+- LDAP credentials are retrieved using Python `keyring`, rather than hardcoded into the source.
+- Selected administrative permissions are delegated within the lab.
+- Administrative operations remain subject to Active Directory access controls.
+- The Flask interface runs locally.
+- Development and testing take place in an isolated virtual lab, not a production environment.
 
-The project provides hands-on experience with:
-
-- Active Directory permissions and delegation
-- LDAP-based identity management
-- Service-account design
-- AI-assisted infrastructure administration
-- Security considerations for automated administrative actions
-
-SÝN is developed and tested in an isolated virtual lab, not a production environment.
+**Current limitations:** The LDAP connection does not yet explicitly enforce TLS, and additional input validation, action confirmation, and audit logging are planned before broader administrative use.
 
 ## Project Structure
 
-The application is organized into modular Python components.
-
 | File / Module | Purpose |
 |---|---|
-| `agent.py` | Main agent logic and tool dispatch |
-| `web_agent.py` | Flask-based web interface |
-| `users.py` | Active Directory user-related functionality |
-| `active_directory/tool_definitions.py` | Definitions for Active Directory tools |
+| `agent.py` | Main AI agent, Ollama integration, and conversation handling |
+| `web_agent.py` | Flask dashboard, chat interface, and connectivity checks |
+| `active_directory/connection.py` | LDAP connection and credential retrieval |
+| `active_directory/dispatcher.py` | Active Directory tool execution |
+| `active_directory/tool_definitions.py` | AI-accessible tool definitions |
+| `active_directory/users.py` | User queries and account administration |
+| `active_directory/groups.py` | Group membership queries |
+| `active_directory/computers.py` | Domain computer queries |
+| `Static/` | Dashboard images and assets |
+| `SYN/` | Launcher, icons, and project documentation |
 
-The modular design supports adding new capabilities without rebuilding the entire application.
+The modular design supports extending functionality without rebuilding the entire application.
 
 ## Development Roadmap
 
-SÝN is an ongoing project with planned expansion across several areas.
+SÝN remains an active development project. Planned enhancements include:
 
 ### Active Directory Administration
-- Reset user passwords
-- Enable and disable user accounts
-- Create and manage users and groups
-- Manage Organizational Units (OUs)
-- Inspect domain controller information
-- Perform Active Directory health checks
+- Password resets
+- User and group creation and management
+- Organizational Unit (OU) management
+- Expanded domain-controller diagnostics
 
 ### Networking and Infrastructure
-- DNS queries and diagnostics
-- DHCP information
+- DHCP information and diagnostics
 - Network and service discovery
-- Port and connectivity checks
 - SMB share inspection
-- Kerberos and LDAP diagnostics
+- Advanced DNS, LDAP, and Kerberos diagnostics
 
-### Security Operations
+### Security Operations and SIEM
 - Windows Event Log analysis
-- Failed login and account lockout investigations
-- Suspicious authentication detection
+- Failed-login and suspicious authentication investigations
 - Privileged-account monitoring
-- Vulnerability and configuration assessments
+- Splunk integration and security event correlation
 - IOC and threat-intelligence lookups
+- Security alerts and incident reports
 
-### Monitoring and SIEM
-- Splunk integration
-- Automated lab health checks
-- Security event correlation
-- Alerts and notifications
-- Incident and infrastructure reports
-- Security dashboards
-
-### Agent Safety and Intelligence
+### Agent Safety and Reliability
 - Read-only and administrative operation modes
 - Confirmation before sensitive actions
 - Audit logging of administrative changes
-- Permission-aware tool execution
-- Investigation history
-- Improved tool selection and error handling
+- Improved permission handling and input validation
+- Encrypted LDAP communication
+- Investigation history and improved error handling
+- Scheduled health checks and notifications
 
-These are planned features, not currently implemented capabilities.
+These are planned enhancements, not currently implemented features.
 
 ## Learning Objectives
 
 Through SÝN, I am developing practical experience in:
 
 - Python programming and modular application design
-- Working with locally hosted large language models
-- Integrating AI with infrastructure management tools
+- Integrating locally hosted LLMs with infrastructure tools
 - Active Directory administration and LDAP
 - Authentication, authorization, and delegated permissions
-- Designing and testing security automation
-- Troubleshooting interactions between AI, application logic, and enterprise services
+- Web application development with Flask
+- Network service connectivity and troubleshooting
+- Designing, testing, and securing administrative automation
 
 ## Related Project
 
-**Laconia Cybersecurity Lab**
+**[Laconia Cybersecurity Lab](https://github.com/BiancaSe/Laconia-Cybersecurity-Lab)**
 
 SÝN is developed and tested against my VMware-based virtual enterprise network, which includes Windows Server 2019, Active Directory, Windows clients, Linux systems, Kali Linux, Parrot Security OS, and Splunk Enterprise.
 
-The Laconia environment provides the infrastructure for testing SÝN's capabilities and exploring security operations workflows.
+The lab provides the infrastructure for testing SÝN's capabilities and developing security operations workflows.
 
 ## Project Status
 
-**Active development — 11 Active Directory capabilities implemented.**
+**Active development — 12 Active Directory capabilities implemented in code, with enable/disable operations pending successful verification.**
 
-SÝN is a personal cybersecurity and AI automation project built for hands-on learning, experimentation, and continued development.
+The Flask dashboard and basic domain-service connectivity checks have been tested in the Laconia environment.
 
-Future work will focus on expanding Active Directory administration, integrating security monitoring tools, and implementing additional safeguards for automated actions.
+Future development will focus on expanded Active Directory administration, SIEM integration, security investigations, and stronger safeguards for automated operations.
