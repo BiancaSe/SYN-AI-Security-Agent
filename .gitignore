@@ -1,0 +1,26 @@
+# Python generated files
+__pycache__/
+*.pyc
+
+# Local agent memory
+memory.json
+
+# Local backups
+BackupsPY/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Local virtual environments
+.venv/
+venv/
+
+# Exclude conversation memory in any folder
+**/memory.json
+
+# Personal development notes
+SYN/PC Specs.md
+
+*.lnk
