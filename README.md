@@ -66,6 +66,11 @@ The application separates AI interaction, tool definitions, execution logic, and
 ```
 
 The Flask dashboard also performs separate connectivity checks against core domain services.
+## SÝN Web Dashboard
+
+The locally hosted Flask dashboard provides an interactive AI interface and displays connectivity checks for the domain controller, DNS, LDAP, Kerberos, and SMB.
+
+![SÝN Web Dashboard](SYN/SYN-dashboard-demo.png)
 
 ## Implemented Capabilities
 
